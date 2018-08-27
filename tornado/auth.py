@@ -464,7 +464,8 @@ class OAuthMixin(object):
         try:
             response = response_fut.result()
         except Exception as e:
-            raise Exception("Could not get request token: %s" % e)
+            callback()
+            return
         request_token = _oauth_parse_response(response.body)
         data = (base64.b64encode(escape.utf8(request_token["key"])) + b"|" +
                 base64.b64encode(escape.utf8(request_token["secret"])))

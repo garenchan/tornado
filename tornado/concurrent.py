@@ -531,9 +531,15 @@ def _non_deprecated_return_future(f):
     @functools.wraps(f)
     def wrapper(*args, **kwargs):
         future = Future()
-        callback, args, kwargs = replacer.replace(
-            lambda value=_NO_RESULT: future_set_result_unless_cancelled(future, value),
-            args, kwargs)
+        
+        def _callback(value=_NO_RESULT):
+            exc_info = sys.exc_info()
+            if all(i is None for i in exc_info):
+                future_set_result_unless_cancelled(future, value)
+            else:
+                future_set_exc_info(future, exc_info)
+        
+        callback, args, kwargs = replacer.replace(_callback, args, kwargs)
 
         def handle_error(typ, value, tb):
             future_set_exc_info(future, (typ, value, tb))
